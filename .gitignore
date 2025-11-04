@@ -1,9 +1,59 @@
+# Virtual Environment
 venv/
+.venv/
+env/
+ENV/
+
+# Python
 *.pyc
 __pycache__/
-.DS_Store
-*.pth
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Data files - DON'T push large files to GitHub!
+data/
+*.txt
+*.csv
+*.json
+*.pkl
+*.pickle
+
+# PDF files - Copyright protected books
+pdfs/
+*.pdf
+
+# Model checkpoints - Too large for GitHub
 checkpoints/
-data/*.txt
+*.pth
+*.pt
+*.h5
+*.ckpt
+
+# Results and outputs
+results/
+outputs/
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Jupyter Notebooks checkpoints
 .ipynb_checkpoints/
-wandb/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
