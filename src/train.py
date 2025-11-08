@@ -7,6 +7,7 @@ import os
 import time
 from tqdm import tqdm
 import pickle
+from models.lstm import LSTMModel
 
 # Add src to path so we can import our models
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -199,8 +200,7 @@ def generate_sample(model, dataset_dict, device, start_text="Money is", length=2
     
     return generated
 
-
-def train(model_name='simple_rnn', 
+def train(model_type='rnn',  # 'rnn' or 'lstm'
           epochs=50, 
           batch_size=64, 
           seq_length=100,
@@ -212,18 +212,20 @@ def train(model_name='simple_rnn',
     Main training function.
     
     Args:
-        model_name: Name of model (for saving)
+        model_type: 'rnn' or 'lstm'
         epochs: Number of training epochs
         batch_size: Batch size
         seq_length: Sequence length
         learning_rate: Learning rate for optimizer
         embedding_dim: Size of embeddings
         hidden_dim: Size of hidden state
-        num_layers: Number of RNN layers
+        num_layers: Number of layers
     """
     
+    model_name = f'{model_type}'
+    
     print("=" * 60)
-    print("TRAINING SIMPLE RNN")
+    print(f"TRAINING {model_type.upper()}")
     print("=" * 60)
     
     # Device
@@ -248,12 +250,22 @@ def train(model_name='simple_rnn',
     print("MODEL")
     print("=" * 60)
     
-    model = SimpleRNN(
-        vocab_size=dataset_dict['vocab_size'],
-        embedding_dim=embedding_dim,
-        hidden_dim=hidden_dim,
-        num_layers=num_layers
-    ).to(device)
+    if model_type == 'rnn':
+        model = SimpleRNN(
+            vocab_size=dataset_dict['vocab_size'],
+            embedding_dim=embedding_dim,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers
+        ).to(device)
+    elif model_type == 'lstm':
+        model = LSTMModel(
+            vocab_size=dataset_dict['vocab_size'],
+            embedding_dim=embedding_dim,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers
+        ).to(device)
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
     
     print(f"Parameters: {count_parameters(model):,}")
     
@@ -261,12 +273,12 @@ def train(model_name='simple_rnn',
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     
-    # Learning rate scheduler (reduce LR when loss plateaus)
+    # Learning rate scheduler
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, 
         mode='min', 
         factor=0.5, 
-        patience=3,
+        patience=3
     )
     
     # Create checkpoints directory
@@ -329,7 +341,8 @@ def train(model_name='simple_rnn',
                 'vocab_size': dataset_dict['vocab_size'],
                 'embedding_dim': embedding_dim,
                 'hidden_dim': hidden_dim,
-                'num_layers': num_layers
+                'num_layers': num_layers,
+                'model_type': model_type
             }
             torch.save(checkpoint, f'checkpoints/{model_name}_best.pth')
             print(f"  ✓ Saved best model (val_loss: {val_loss:.4f})")
@@ -352,16 +365,39 @@ def train(model_name='simple_rnn',
     print(f"Best val loss: {best_val_loss:.4f}")
     print(f"Saved to: checkpoints/{model_name}_best.pth")
 
-
 if __name__ == "__main__":
-    # Train with default parameters
-    train(
-        model_name='simple_rnn',
-        epochs=50,
-        batch_size=64,
-        seq_length=100,
-        learning_rate=0.002,
-        embedding_dim=128,
-        hidden_dim=256,
-        num_layers=2
-    )
+    import sys
+    
+    # Check if model type specified
+    if len(sys.argv) > 1:
+        model_type = sys.argv[1]
+    else:
+        model_type = 'rnn'  # default
+    
+    if model_type == 'rnn':
+        # Train Simple RNN with smaller architecture
+        train(
+            model_type='rnn',
+            epochs=50,
+            batch_size=64,
+            seq_length=100,
+            learning_rate=0.002,
+            embedding_dim=128,
+            hidden_dim=256,
+            num_layers=2
+        )
+    elif model_type == 'lstm':
+        # Train LSTM with larger architecture (it can handle it!)
+        train(
+            model_type='lstm',
+            epochs=50,
+            batch_size=64,
+            seq_length=100,
+            learning_rate=0.001,  # Slightly lower LR
+            embedding_dim=256,    # Doubled
+            hidden_dim=512,       # Doubled
+            num_layers=2
+        )
+    else:
+        print(f"Unknown model type: {model_type}")
+        print("Usage: python src/train.py [rnn|lstm]")

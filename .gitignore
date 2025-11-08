@@ -4,6 +4,19 @@ venv/
 env/
 ENV/
 
+# Model checkpoints - TOO LARGE for git
+checkpoints/
+*.pth
+*.pt
+*.ckpt
+
+# Data files
+data/
+*.pkl
+
+# BUT allow results graphs (they're small!)
+!results/
+!results/*.png
 # Python
 *.pyc
 __pycache__/

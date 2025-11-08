@@ -22,7 +22,7 @@ def extract_text_pdfplumber(pdf_path):
                 if page_text:
                     text += page_text + "\n"
             
-            print(f"  ✓ Extracted {len(text):,} characters")
+            print(f"    Extracted {len(text):,} characters ")
             return text
             
     except Exception as e:
@@ -33,9 +33,9 @@ def clean_extracted_text_gentle(text):
     """
     Gentle cleaning - only remove obvious junk.
     
-    We'll be MUCH less aggressive this time.
+
     """
-    print("Cleaning extracted text (gentle mode)...")
+    print("Cleaning extracted text...")
     
     original_length = len(text)
     
