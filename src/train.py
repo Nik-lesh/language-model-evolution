@@ -8,6 +8,7 @@ import time
 from tqdm import tqdm
 import pickle
 from models.lstm import LSTMModel
+from models.transformer import TransformerModel
 
 # Add src to path so we can import our models
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -102,7 +103,7 @@ def create_dataloaders(dataset_dict, batch_size=64, seq_length=100):
     return train_loader, val_loader
 
 
-def train_epoch(model, train_loader, criterion, optimizer, device, epoch):
+def train_epoch(model, train_loader, criterion, optimizer, device, epoch, model_type='rnn'):
     """
     Train for one epoch.
     
@@ -122,7 +123,10 @@ def train_epoch(model, train_loader, criterion, optimizer, device, epoch):
         optimizer.zero_grad()
         
         # Forward pass
-        output, _ = model(x)
+        if model_type == 'transformer':
+            output = model(x)
+        else:
+            output, _ = model(x)
         
         # Reshape target to match output
         y = y.view(-1)
@@ -149,7 +153,7 @@ def train_epoch(model, train_loader, criterion, optimizer, device, epoch):
     return avg_loss
 
 
-def validate(model, val_loader, criterion, device):
+def validate(model, val_loader, criterion, device, model_type='rnn'):
     """
     Validate the model.
     
@@ -163,7 +167,12 @@ def validate(model, val_loader, criterion, device):
         for x, y in val_loader:
             x, y = x.to(device), y.to(device)
             
-            output, _ = model(x)
+            if model_type == 'transformer':
+                output = model(x)
+            else:
+                output, _ = model(x)
+            
+            # Reshape target to match output
             y = y.view(-1)
             
             loss = criterion(output, y)
@@ -173,7 +182,7 @@ def validate(model, val_loader, criterion, device):
     return avg_loss
 
 
-def generate_sample(model, dataset_dict, device, start_text="Money is", length=200):
+def generate_sample(model, dataset_dict, device, start_text="Money is", length=200, model_type='rnn'):
     """Generate a sample of text."""
     model.eval()
     
@@ -186,7 +195,10 @@ def generate_sample(model, dataset_dict, device, start_text="Money is", length=2
     
     with torch.no_grad():
         for _ in range(length):
-            output, hidden = model(input_seq, hidden)
+            if model_type == 'transformer':
+                output = model(input_seq)
+            else:
+                output, hidden = model(input_seq, hidden)
             
             # Get probabilities for next character
             probs = torch.softmax(output[-1], dim=0)
@@ -249,7 +261,6 @@ def train(model_type='rnn',  # 'rnn' or 'lstm'
     print(f"\n" + "=" * 60)
     print("MODEL")
     print("=" * 60)
-    
     if model_type == 'rnn':
         model = SimpleRNN(
             vocab_size=dataset_dict['vocab_size'],
@@ -263,6 +274,15 @@ def train(model_type='rnn',  # 'rnn' or 'lstm'
             embedding_dim=embedding_dim,
             hidden_dim=hidden_dim,
             num_layers=num_layers
+        ).to(device)
+    elif model_type == 'transformer':
+        model = TransformerModel(
+            vocab_size=dataset_dict['vocab_size'],
+            d_model=embedding_dim,  # embedding_dim = d_model for transformer
+            nhead=8,  # Number of attention heads
+            num_layers=num_layers,
+            dim_feedforward=hidden_dim,  # hidden_dim = dim_feedforward for transformer
+            dropout=0.2
         ).to(device)
     else:
         raise ValueError(f"Unknown model type: {model_type}")
@@ -302,10 +322,10 @@ def train(model_type='rnn',  # 'rnn' or 'lstm'
     
     for epoch in range(1, epochs + 1):
         # Train
-        train_loss = train_epoch(model, train_loader, criterion, optimizer, device, epoch)
+        train_loss = train_epoch(model, train_loader, criterion, optimizer, device, epoch, model_type)
         
         # Validate
-        val_loss = validate(model, val_loader, criterion, device)
+        val_loss = validate(model, val_loader, criterion, device, model_type)
         
         # Update learning rate
         scheduler.step(val_loss)
@@ -325,7 +345,7 @@ def train(model_type='rnn',  # 'rnn' or 'lstm'
             print("\n" + "-" * 60)
             print("Sample generation:")
             print("-" * 60)
-            sample = generate_sample(model, dataset_dict, device)
+            sample = generate_sample(model, dataset_dict, device, model_type=model_type)
             print(sample)
             print("-" * 60 + "\n")
         
@@ -375,7 +395,7 @@ if __name__ == "__main__":
         model_type = 'rnn'  # default
     
     if model_type == 'rnn':
-        # Train Simple RNN with smaller architecture
+        # Train Simple RNN
         train(
             model_type='rnn',
             epochs=50,
@@ -387,17 +407,29 @@ if __name__ == "__main__":
             num_layers=2
         )
     elif model_type == 'lstm':
-        # Train LSTM with larger architecture (it can handle it!)
+        # Train LSTM
         train(
             model_type='lstm',
             epochs=50,
             batch_size=64,
             seq_length=100,
-            learning_rate=0.001,  # Slightly lower LR
-            embedding_dim=256,    # Doubled
-            hidden_dim=512,       # Doubled
+            learning_rate=0.001,
+            embedding_dim=256,
+            hidden_dim=512,
             num_layers=2
+        )
+    elif model_type == 'transformer':
+        # Train Transformer
+        train(
+            model_type='transformer',
+            epochs=100,
+            batch_size=64,  # Smaller batch due to memory
+            seq_length=100,
+            learning_rate=0.001,  # Lower LR for transformer
+            embedding_dim=256,  # d_model
+            hidden_dim=1024,  # dim_feedforward
+            num_layers=4  # transformer layers
         )
     else:
         print(f"Unknown model type: {model_type}")
-        print("Usage: python src/train.py [rnn|lstm]")
+        print("Usage: python src/train.py [rnn|lstm|transformer]")
