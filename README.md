@@ -1,182 +1,141 @@
 # Language Model Evolution: RNN → LSTM → Transformer
 
-Comparing three generations of language models trained on the same financial text corpus.
+Comparing three generations of language models trained on financial text to demonstrate architectural improvements in deep learning.
 
-## 🎯 Project Goal
+## 🎯 Project Overview
 
-Train and compare three different neural network architectures for character-level language modeling:
+Built and trained three neural network architectures from scratch:
 
-1. **Simple RNN** (baseline) - Shows fundamental sequence modeling
-2. **LSTM** (improved) - Demonstrates handling of long-term dependencies
-3. **Transformer** (state-of-the-art) - Modern attention-based architecture
+- **Simple RNN** - Baseline sequential model
+- **LSTM** - Improved with memory gates
+- **Transformer** - State-of-the-art attention mechanism
 
-All models trained on finance/investment books to learn domain-specific language.
+**Dataset:** 640KB financial text (character-level tokenization)  
+**Goal:** Compare text generation quality and training efficiency
 
-## 📊 Dataset
+## 🏆 Results
 
-- **Domain:** Finance and Investment
-- **Size:** ~640 KB of text (~652,809 characters)
-- **Vocabulary:** 113 unique characters
-- **Books:** 2 finance books focused on money, wealth, and investing
-- **Preprocessing:** Character-level tokenization
+| Model       | Parameters | Val Loss   | Train Time | Text Quality      |
+| ----------- | ---------- | ---------- | ---------- | ----------------- |
+| Simple RNN  | 274K       | 1.6482     | 3.8 min    | Poor (gibberish)  |
+| **LSTM** 🥇 | 3.8M       | **1.4711** | 39.5 min   | **Excellent**     |
+| Transformer | 3.2M       | 1.5523     | 103 min    | Needs improvement |
 
-## 🏗️ Project Structure
+### Sample Generation: "Money is..."
+
+**RNN:** "Money is important on the first for investors of counting. And for successe of ommerial peaper..."  
+❌ Made-up words, broken grammar
+
+**LSTM:** "Money is always right to seek by less than investments. When the result is that the poor and the drivers that are high-specialized..."  
+✅ Real words, financial vocabulary, coherent structure
+
+**Transformer:** "Money is f t thecathe Couifthisie atr, pere ak..."  
+⚠️ Undertrained on small dataset
+
+### Key Finding
+
+**LSTM wins** for character-level modeling on small datasets. Demonstrates that newer architectures aren't always better - match your model to your data!
+
+## 🚀 Quick Start
+
+```bash
+# Setup
+git clone https://github.com/YOUR_USERNAME/language-model-evolution.git
+cd language-model-evolution
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Train models
+python src/train.py rnn        # 4 min
+python src/train.py lstm       # 40 min
+python src/train.py transformer # 100 min
+
+# Compare results
+python src/compare_models.py
+python src/generate_samples.py
+```
+
+## 📁 Project Structure
 
 ```
 language-model-evolution/
-├── data/                          # Training data (not in git)
-│   ├── training_corpus.txt       # Raw combined text
-│   ├── training_corpus_clean.txt # Cleaned text
-│   └── dataset.pkl               # Processed dataset
-│
-├── pdfs/                          # Original PDF books (not in git)
-│
 ├── src/
-│   ├── scripts/                   # Data processing scripts
-│   │   ├── extract_from_pdf.py   # PDF → text extraction
-│   │   ├── clean_corpus.py       # Text cleaning
-│   │   ├── analysis_corpus.py    # Dataset statistics
-│   │   └── prepare_data.py       # Create training sequences
-│   │
-│   ├── models/                    # Model architectures
-│   │   ├── simple_rnn.py         # Basic RNN
-│   │   ├── lstm.py               # LSTM (coming soon)
-│   │   └── transformer.py        # Transformer (coming soon)
-│   │
-│   └── train.py                   # Training script (coming soon)
-│
-├── checkpoints/                   # Saved models (not in git)
-├── results/                       # Training results (not in git)
-├── notebooks/                     # Jupyter notebooks for analysis
-│
-├── requirements.txt               # Python dependencies
-├── .gitignore
-└── README.md
+│   ├── models/          # RNN, LSTM, Transformer implementations
+│   ├── scripts/         # Data processing (PDF → text)
+│   └── train.py         # Training pipeline
+├── results/             # Training curves and visualizations
+├── data/                # Training corpus (not in git)
+└── checkpoints/         # Saved models (not in git)
 ```
 
-## 🚀 Setup
+## 🔬 Technical Details
 
-### 1. Clone the repository
+**Architecture Highlights:**
 
-```bash
-git clone https://github.com/Nik.lesh/language-model-evolution.git
-cd language-model-evolution
-```
+- **RNN:** Simple recurrent connections, struggles with long-term dependencies
+- **LSTM:** Gates (forget/input/output) + cell state for better memory
+- **Transformer:** Multi-head self-attention (8 heads, 4 layers) with positional encoding
 
-### 2. Create virtual environment
+**Training Setup:**
 
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+- Optimizer: Adam
+- Batch size: 64 (RNN/LSTM), 32 (Transformer)
+- Sequence length: 100 characters
+- Loss: Cross-entropy
 
-### 3. Install dependencies
+## 📊 Visualizations
 
-```bash
-pip install -r requirements.txt
-```
+See `results/` for:
 
-### 4. Prepare your data
+- Individual training curves
+- Side-by-side model comparison
+- Text generation examples
 
-Since the PDFs are copyrighted, you'll need to provide your own:
+## 🚀 Future Improvements
 
-- Place PDF files in `pdfs/` folder
-- Run data extraction: `python src/scripts/extract_from_pdf.py`
-- Clean and prepare: `python src/scripts/prepare_data.py`
+**Phase 1:** Word-level tokenization (in progress)
 
-## 📦 Dependencies
+- Switch from 113 characters → 10K word vocabulary
+- Expected to dramatically improve Transformer performance
 
-```
-torch>=2.0.0
-numpy>=1.24.0
-pdfplumber>=0.11.0
-PyPDF2>=3.0.0
-matplotlib>=3.7.0
-jupyter>=1.0.0
-tqdm>=4.65.0
-```
+**Phase 2:** Expand dataset to 50-100 books
 
-## 🎓 Models
+- Current: 2 books (640KB) → Target: 10-50MB
+- More data = better models, especially Transformer
 
-### Simple RNN
+**Phase 3:** GPU training on Google Colab
 
-- **Parameters:** ~XXX,XXX (to be filled after training)
-- **Architecture:** Embedding → 2-layer RNN → Linear
-- **Purpose:** Baseline model showing fundamental sequence modeling
+- 10-50x faster training
+- Enables larger models and rapid experimentation
 
-### LSTM (Coming Soon)
+**Phase 4:** Production financial advisor chatbot
 
-- **Architecture:** Embedding → 2-layer LSTM → Linear
-- **Improvement:** Better at learning long-term dependencies via gates
+- GPT-style interface for investment advice
+- FastAPI backend + React frontend
+- Deployment ready
 
-### Transformer (Coming Soon)
+## 📚 Key Learnings
 
-- **Architecture:** Embedding → Multi-head Attention → Feed-forward → Linear
-- **Improvement:** Parallel processing and attention mechanism
+1. **Bigger ≠ always better** - LSTM beat Transformer on this dataset
+2. **Architecture matters** - Gates solve vanishing gradients
+3. **Data size is crucial** - Transformers need more data to shine
+4. **Domain adaptation works** - Models learned financial vocabulary
+5. **Training trade-offs** - 10x time for 10.7% improvement worth it
 
-## 📈 Training (Coming Soon)
+## 🛠️ Tech Stack
 
-```bash
-# Train Simple RNN
-python src/train.py --model rnn --epochs 50 --batch-size 64
-
-# Train LSTM
-python src/train.py --model lstm --epochs 50 --batch-size 64
-
-# Train Transformer
-python src/train.py --model transformer --epochs 50 --batch-size 32
-```
-
-## 📊 Results (Coming Soon)
-
-Comparison metrics:
-
-- Training loss curves
-- Validation loss
-- Text generation quality
-- Training time
-- Model size
-- Perplexity
-
-## 🎯 Sample Outputs (Coming Soon)
-
-Examples of text generated by each model starting with "Money is..."
-
-## 🔍 Analysis (Coming Soon)
-
-Jupyter notebooks for:
-
-- Data exploration
-- Training visualization
-- Model comparison
-- Text generation demos
-
-## 📝 Key Learnings
-
-This project demonstrates:
-
-- Evolution of sequence modeling architectures
-- Importance of gates (LSTM) for long-term dependencies
-- Power of attention mechanisms (Transformer)
-- Character-level vs word-level modeling
-- Practical ML project workflow: data → model → training → evaluation
-
-## 🤝 Contributing
-
-This is a learning project. Feel free to fork and experiment!
+- PyTorch 2.0
+- NumPy, Matplotlib
+- pdfplumber (data extraction)
+- tqdm (progress bars)
 
 ## 📄 License
 
-MIT License - See LICENSE file for details
-
-## 🙏 Acknowledgments
-
-- Dataset: Finance and investment books
-- Inspired by: The evolution of NLP architectures
-- Built for: Understanding deep learning fundamentals
+MIT License
 
 ---
 
-**Status:** 🚧 In Progress - Currently implementing RNN baseline
-
-Last Updated: November 3, 2025
+**Status:** ✅ RNN Complete | ✅ LSTM Complete | 🔄 Transformer Optimization  
+**Best Model:** LSTM (1.4711 val loss)  
+**Next:** Word-level tokenization + expanded dataset

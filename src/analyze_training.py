@@ -102,5 +102,11 @@ def analyze_training(model_name='simple_rnn', show_plot=True):
 
 
 if __name__ == "__main__":
-    # Analyze Simple RNN
-    analyze_training('simple_rnn', show_plot=True)
+    import sys
+    
+    if len(sys.argv) > 1:
+        model_name = sys.argv[1]
+    else:
+        model_name = 'simple_rnn'
+    
+    analyze_training(model_name, show_plot=True)
