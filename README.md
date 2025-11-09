@@ -359,14 +359,6 @@ MIT License - See LICENSE file for details
 - Built for: Understanding deep learning fundamentals and architectural improvements
 - Frameworks: PyTorch, NumPy, Matplotlib
 
-## 📞 Contact
-
-**Project:** Language Model Evolution  
-**Purpose:** Educational demonstration of RNN → LSTM → Transformer progression  
-**Status:** ✅ RNN Complete | ✅ LSTM Complete | 🔄 Transformer v2 In Progress
-
----
-
 **Last Updated:** November 8, 2025  
 **Current Best Model:** LSTM (1.4711 val loss)  
 **Training Status:** Transformer v2 retraining with 100 epochs for improved performance
