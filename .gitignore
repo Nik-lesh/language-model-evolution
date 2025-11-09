@@ -3,20 +3,6 @@ venv/
 .venv/
 env/
 ENV/
-
-# Model checkpoints - TOO LARGE for git
-checkpoints/
-*.pth
-*.pt
-*.ckpt
-
-# Data files
-data/
-*.pkl
-
-# BUT allow results graphs (they're small!)
-!results/
-!results/*.png
 # Python
 *.pyc
 __pycache__/
@@ -44,13 +30,6 @@ checkpoints/
 *.h5
 *.ckpt
 
-# Results and outputs
-results/
-outputs/
-*.png
-*.jpg
-*.jpeg
-*.gif
 
 # Jupyter Notebooks checkpoints
 .ipynb_checkpoints/
