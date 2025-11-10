@@ -310,15 +310,27 @@ def test_word_dataset():
 
 
 if __name__ == "__main__":
-    # Run the test
-    dataset = test_word_dataset()
+    import sys
+    
+    # Check for command line argument
+    if len(sys.argv) > 1:
+        corpus_file = sys.argv[1]
+    else:
+        corpus_file = 'data/processed/mega_corpus.txt'
+    
+    print(f"Using corpus: {corpus_file}\n")
+    
+    # Create MEGA dataset
+    dataset = WordLevelDataset(
+        corpus_file, 
+        seq_length=50,
+        max_vocab=20000  # Increased vocab for larger dataset!
+    )
+    
+    # Save as mega_word_dataset.pkl
+    dataset.save('data/mega_word_dataset.pkl')
     
     print("\n" + "=" * 60)
-    print("WORD-LEVEL DATA PREPARATION COMPLETE!")
+    print("✅ MEGA WORD-LEVEL DATASET COMPLETE!")
     print("=" * 60)
-    print("\nKey differences from character-level:")
-    print("  ✓ Vocabulary: ~10,000 words vs 113 characters")
-    print("  ✓ Sequence length: 50 words vs 100 characters")
-    print("  ✓ More semantic meaning per token")
-    print("  ✓ Better for Transformer architecture")
-    print("\nYou can now train models on word-level data!")
+    print("\nDataset ready for training!")
