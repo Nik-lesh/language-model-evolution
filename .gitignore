@@ -49,3 +49,8 @@ logs/
 # Environment variables
 .env
 .env.local
+
+# Download scripts - one-time use, keep local only
+src/scripts/download_data/
+src/scripts/utils/extract_pdfs.py
+src/scripts/utils/extract_from_pdf.py

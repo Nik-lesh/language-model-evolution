@@ -116,19 +116,139 @@ python src/generate_samples.py
 
 ```
 language-model-evolution/
+├── data/                          # Training data (not in git)
+│   ├── books/                    # Source books by category
+│   │   ├── gutenberg/            # 60 original classics (34 MB)
+│   │   ├── gutenberg_expanded/   # 169 additional books (73 MB)
+│   │   ├── wikipedia/            # 127 articles (4.6 MB)
+│   │   ├── academic_text/        # 10 extracted papers (1.3 MB)
+│   │   └── old_books/            # Original 2 books (0.6 MB)
+│   ├── mega_corpus.txt           # Combined corpus (103 MB, 18.3M words)
+│   ├── dataset.pkl               # Character-level dataset (652K chars)
+│   └── word_dataset.pkl          # Word-level dataset (small corpus)
+│
+├── pdfs/                          # Original PDFs (not in git)
+│
 ├── src/
-│   ├── models/              # RNN, LSTM, Transformer
-│   ├── scripts/             # Data processing
-│   │   ├── prepare_data.py           # Character-level
-│   │   └── prepare_word_level_data.py # Word-level
-│   ├── train.py             # Character-level training
-│   └── train_word_level.py  # Word-level training
-├── results/                 # Visualizations
-├── data/                    # Datasets (not in git)
-│   ├── dataset.pkl          # Character-level
-│   └── word_dataset.pkl     # Word-level
-└── checkpoints/             # Saved models (not in git)
+│   ├── models/                   # Neural network architectures
+│   │   ├── simple_rnn.py         # Simple RNN implementation
+│   │   ├── lstm.py               # LSTM with gates
+│   │   └── transformer.py        # Multi-head attention
+│   │
+│   ├── scripts/                  # Data processing utilities
+│   │   ├── download_data/        # Data collection scripts (local only)
+│   │   └── utils/                # Data preparation utilities
+│   │       ├── prepare_data.py              # Character-level prep
+│   │       └── prepare_word_level_data.py   # Word-level prep
+│   │
+│   ├── analyze/                  # Analysis and visualization
+│   │   ├── analysis_corpus.py
+│   │   ├── analyze_training.py
+│   │   ├── analyze_word_level.py
+│   │   ├── compare_models.py
+│   │   └── generate_samples.py
+│   │
+│   ├── train/                    # Training scripts
+│   │   ├── train.py              # Character-level training
+│   │   └── train_word_level.py   # Word-level training
+│   │
+│   └── clean_corpus.py           # Text cleaning utility
+│
+├── results/                      # Training visualizations (in git)
+│   ├── word_level/               # Word-level experiment results
+│   ├── simple_rnn_training_curve.png
+│   ├── lstm_training_curve.png
+│   ├── transformer_training_curve.png
+│   └── rnn_vs_lstm_comparison.png
+│
+├── checkpoints/                  # Trained models (not in git)
+│
+├── requirements.txt              # Python dependencies
+├── .gitignore
+└── README.md
 ```
+
+## 📊 Dataset Summary
+
+### Current Dataset (103 MB - Phase 2 Complete)
+
+- **Total Size:** 103.14 MB
+- **Total Words:** 18,330,423 (138x increase from original)
+- **Total Sources:** 379 books and articles
+- **Vocabulary:** ~20,000 unique words
+- **Samples per Word:** ~916 (vs 13.6 in small dataset)
+
+### Sources Breakdown
+
+| Source             | Files   | Size       | Content                          |
+| ------------------ | ------- | ---------- | -------------------------------- |
+| Gutenberg Original | 60      | 31 MB      | Classic finance books            |
+| Gutenberg Expanded | 169     | 66 MB      | Economics, investment, business  |
+| Wikipedia          | 127     | 4.3 MB     | Finance/economics articles       |
+| Academic Papers    | 10      | 1.3 MB     | Research papers (arXiv)          |
+| **Total**          | **379** | **103 MB** | **Comprehensive finance corpus** |
+
+### Categories Covered
+
+- 📚 Economics theory and history
+- 💹 Investment and trading strategies
+- 🏢 Business and entrepreneurship
+- 💰 Personal finance and wealth building
+- 🏛️ Banking and monetary systems
+- 📊 Accounting and financial management
+- 🌍 International trade and economics
+- 👔 Labor and industrial relations
+
+## 🚀 Usage
+
+### Prepare Datasets
+
+**Character-level (small corpus):**
+
+```bash
+python src/scripts/utils/prepare_data.py
+```
+
+**Word-level (mega corpus):**
+
+```bash
+python src/scripts/utils/prepare_word_level_data.py data/mega_corpus.txt
+```
+
+### Train Models
+
+**Character-level:**
+
+```bash
+python src/train/train.py rnn
+python src/train/train.py lstm
+python src/train/train.py transformer
+```
+
+**Word-level (on mega corpus):**
+
+```bash
+python src/train/train_word_level.py lstm
+python src/train/train_word_level.py transformer
+```
+
+### Analyze Results
+
+```bash
+python src/analyze/analyze_training.py lstm
+python src/analyze/compare_models.py
+python src/analyze/generate_samples.py
+```
+
+## 📈 Expected Results with Mega Corpus
+
+| Model                | Small Dataset | Mega Dataset      | Improvement        |
+| -------------------- | ------------- | ----------------- | ------------------ |
+| **Char LSTM**        | 1.47 loss     | N/A               | Baseline           |
+| **Word LSTM**        | 6.41 loss     | ~1.8-2.2 loss     | 3-4x better        |
+| **Word Transformer** | 6.23 loss     | **~1.2-1.8 loss** | **3-5x better** 🎯 |
+
+**With 18.3M words, Transformer should dominate!**
 
 ## 🔬 Technical Details
 
