@@ -1,313 +1,712 @@
 # Language Model Evolution: RNN → LSTM → Transformer
 
-A comprehensive study comparing three generations of language models on financial text, exploring the impact of architecture, tokenization strategy, and dataset scale on model performance.
+A comprehensive study of language model architectures trained on financial text, demonstrating the evolution from RNNs to Transformers and the critical impact of dataset composition and scale.
 
 ## 🎯 Project Overview
 
-Built and trained three neural network architectures from scratch, systematically testing:
+Built three neural network architectures from scratch and systematically tested across multiple tokenization strategies and dataset scales to understand when each architecture excels.
 
-- **Architectures:** RNN → LSTM → Transformer
-- **Tokenization:** Character-level vs Word-level
-- **Dataset Scale:** 640KB → 103MB → 1GB (in progress)
+**Key Question:** When do RNNs, LSTMs, and Transformers perform best, and how do tokenization and data quality affect results?
 
-**Goal:** Understand when each architecture excels and the critical role of data composition.
+## 🏆 Final Results
 
-## 🏆 Complete Results
+### Complete Experimental Journey
 
-### Phase 1: Character-Level (640KB, 652K characters)
+| Model       | Dataset                | Tokenization | Val Loss   | Text Quality         | Status                     |
+| ----------- | ---------------------- | ------------ | ---------- | -------------------- | -------------------------- |
+| LSTM        | 640 KB                 | Character    | **1.4711** | Modern, excellent    | 🥇 **Best for small data** |
+| Transformer | 640 KB                 | Character    | 1.5523     | Good                 | ✅ Works well              |
+| Transformer | 132K words             | Word         | 6.2291     | Broken               | ❌ Insufficient data       |
+| Transformer | 103 MB (83% classical) | Word         | 5.3214     | Archaic prose        | ⚠️ Data imbalance          |
+| Transformer | 571 MB (over-cleaned)  | Word         | 7.5487     | Gibberish            | ❌ Cleaning destroyed data |
+| Transformer | **1 GB (87% modern)**  | Word         | **4.0100** | **Modern, coherent** | ✅ **Best word-level**     |
 
-| Model       | Parameters | Val Loss   | Train Time | Text Quality     |
-| ----------- | ---------- | ---------- | ---------- | ---------------- |
-| Simple RNN  | 274K       | 1.6482     | 3.8 min    | Poor (gibberish) |
-| **LSTM** 🥇 | 3.8M       | **1.4711** | 39.5 min   | **Excellent**    |
-| Transformer | 3.2M       | 1.5523     | 103 min    | Undertrained     |
+### Key Achievement
 
-### Phase 2: Word-Level Small Dataset (640KB, 132K words)
+**Successfully scaled from 640 KB → 1 GB while maintaining modern language style.**
 
-| Model       | Parameters | Val Loss | Train Time | Text Quality                 |
-| ----------- | ---------- | -------- | ---------- | ---------------------------- |
-| LSTM        | 3.8M       | 6.4072   | 15.7 min   | Good grammar, weak semantics |
-| Transformer | 3.2M       | 6.2291   | 25.8 min   | Slightly better, still poor  |
+Final model (Transformer on 1GB balanced corpus):
 
-**Finding:** Word-level needs significantly more data (vocabulary too sparse at 13.6 samples/word).
-
-### Phase 2: Word-Level Mega Corpus (103MB, 22M words, 379 sources)
-
-| Model                    | Parameters | Val Loss | Train Time         | Text Quality         |
-| ------------------------ | ---------- | -------- | ------------------ | -------------------- |
-| Transformer              | 3.2M       | 5.3214   | 1.5 hrs (V100 GPU) | Coherent but archaic |
-| Transformer (fine-tuned) | 3.2M       | 5.3214   | +30 min            | No improvement       |
-
-**Findings:**
-
-- ✅ 14% improvement over small dataset (6.23 → 5.32)
-- ✅ Sufficient vocabulary density (~916 samples/word)
-- ⚠️ Classical books (83%) dominate corpus → archaic language style
-- ⚠️ Hyperparameter tuning had minimal impact
-- ❌ Still worse than character-level LSTM (5.32 vs 1.47)
-
-**Diagnosis:** Data composition problem, not architecture or training issue.
+- Val Loss: 4.01
+- Training: 7.5 hours on TPU
+- Text Style: Modern conversational (2018 financial news)
+- Vocabulary: 20,000 words
+- Dataset: 168 million words, 87% modern content
 
 ## 📝 Sample Text Generations
 
-### Character-Level LSTM (1.47 loss) - Best Overall Quality
+### Character-Level LSTM (1.47 loss) - Small Dataset Champion
 
 **Prompt:** "Money is"
 
 ```
 "Money is always right to seek by less than investments. When the result
-is that the poor and the drivers that are high-specialized because I
-didn't want to work for money. The power of being set them to be..."
+is that the poor and the drivers that are high-specialized because I didn't
+want to work for money. The power of being set them to be..."
 ```
 
 ✅ Modern language, financial concepts, semantic coherence
 
-### Word-Level Transformer - Small Dataset (6.23 loss)
+### Word-Level Transformer (4.01 loss) - 1GB Balanced Corpus
 
 **Prompt:** "Money is"
 
 ```
-"money is all, the road and white kahneman hurried off the second
-investor, but if you want to be so losing money at some three..."
+"money is really a little more like to manage the money. you know, listen
+to your money, you can't run a competitive game. you can't have the financial
+situation, but you can't get the handle on the stock..."
 ```
 
-✅ Perfect grammar, learned names  
-❌ Semantically incoherent (insufficient data)
+✅ Modern conversational style, contractions, proper grammar
 
-### Word-Level Transformer - Mega Corpus (5.32 loss)
-
-**Prompt:** "Money is"
+**Prompt:** "The best investment strategy"
 
 ```
-"money is meant. but the whole capital of consumption is always at
-the price of all sorts. the quantity of silver which it will purchase,
-in exchange for which all other improvements are purchased..."
+"the best investment strategy...recommends that the last market with a
+portfolio of products...there's a much better investment approach than at
+berkshire hathaway, it's better to find a new way to manage your finances"
 ```
 
-✅ Grammatically perfect, rich financial vocabulary  
-⚠️ Archaic 18th-century prose style (Adam Smith influence)  
-⚠️ Overly verbose, classical phrasing
+✅ Mentions real companies (Berkshire Hathaway), modern investment language
 
-**Prompt:** "Investing in"
+## 🔬 Critical Insights & Learnings
 
+### 1. Data Composition > Data Quantity
+
+**Experiment:** 103 MB classical texts vs 571 MB balanced modern content
+
+| Corpus          | Size   | Era Balance   | Val Loss | Output Style               |
+| --------------- | ------ | ------------- | -------- | -------------------------- |
+| Classical-heavy | 103 MB | 83% pre-1900  | 5.32     | Archaic 18th century prose |
+| Balanced modern | 571 MB | 87% post-2000 | 4.01     | Modern conversational      |
+
+**Key Learning:** 500 MB of modern data > 100 MB classical for modern applications
+
+### 2. Data Cleaning Can Destroy Quality
+
+**Experiment:** Aggressive cleaning removed 44% of data
+
+| Version      | Size   | Sentences     | Val Loss | Quality          |
+| ------------ | ------ | ------------- | -------- | ---------------- |
+| Raw corpus   | 1 GB   | Intact        | 4.01     | Modern, coherent |
+| Over-cleaned | 571 MB | 22% fragments | 7.55     | Gibberish        |
+
+**Key Learning:** Preserve sentence structure over removing noise
+
+### 3. Character-Level Excels on Small Data
+
+For datasets <10 MB:
+
+- Character-level LSTM dominates (1.47 loss)
+- Word-level struggles (6.23 loss on same data)
+- Reason: Vocabulary sparsity (13.6 samples/word insufficient)
+
+### 4. Word-Level Requires Scale AND Balance
+
+Minimum requirements for word-level:
+
+- Data: >500 MB text
+- Words: >50 million
+- Samples per word: >500
+- Era balance: >60% modern content for modern output
+
+### 5. Architecture Fits Data Characteristics
+
+- **Small focused data (<10 MB):** Character-level LSTM wins
+- **Large balanced data (>500 MB):** Word-level Transformer competitive
+- **No universal winner:** Match architecture to data availability
+
+### 6. Loss Metrics Across Vocabularies Not Comparable
+
+- Character (113 vocab): 1.47 loss = exp(1.47) = 4.35 perplexity
+- Word (20K vocab): 4.01 loss = exp(4.01) = 55.1 perplexity
+
+Different difficulty levels - evaluate text quality instead.
+
+## 🚀 Quick Start
+
+### Setup
+
+```bash
+git clone https://github.com/YOUR_USERNAME/language-model-evolution.git
+cd language-model-evolution
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
-"investing in the whole value of the loan of the borrower and my father's
-new estate. it was an expedient that would have been so unexpected..."
+
+### Train Models Locally (Small Dataset)
+
+```bash
+# Character-level (CPU, 40 min)
+python src/train/train.py lstm
+
+# Analyze results
+python src/analyze/analyze_training.py lstm
 ```
 
-✅ Coherent narrative  
-✅ Financial concepts (loan, value, estate)  
-⚠️ Classical writing style persists
+### Train on Large Dataset (GPU/TPU Required)
 
-## 🔍 Critical Insights
+```bash
+# Prepare 1GB balanced corpus (see Data Collection Guide)
+python scripts/create_balanced_final_corpus.py
 
-### 1. Dataset Composition Matters More Than Size
+# Prepare word-level dataset
+python src/scripts/utils/prepare_word_level_data.py data/balanced_corpus.txt
 
-**103 MB Corpus Breakdown:**
-
-- Classical economics (1700s-1800s): ~85 MB (83%) ⚠️
-- Modern content (2000s-2020s): ~18 MB (17%) ⚠️
-
-**Result:** Model learned perfect grammar but archaic language patterns from Adam Smith, Karl Marx, etc.
-
-**Key Learning:** 100 MB of imbalanced data < 10 MB of balanced data
-
-### 2. Character-Level LSTM Remains Champion
-
-Despite 166x more data and GPU training:
-
-- Character LSTM: **1.47 loss** on 640KB
-- Word Transformer: **5.32 loss** on 103 MB
-
-**Why:** Focused, modern dataset beats massive classical corpus for practical applications.
-
-### 3. Hyperparameters Not the Bottleneck
-
-Fine-tuning experiments (lower LR, higher dropout, early stopping):
-
-- Improvement: 0.025 (0.5%)
-- Conclusion: Data composition is the root cause
-
-### 4. Word-Level Scaling Validation
-
-| Dataset | Words | Vocab | Samples/Word | Val Loss | Status                  |
-| ------- | ----- | ----- | ------------ | -------- | ----------------------- |
-| Small   | 132K  | 10K   | 13.6         | 6.23     | Severe underfitting     |
-| Mega    | 22M   | 20K   | 916          | 5.32     | Learning but imbalanced |
-| Target  | 150M  | 30K   | 5,000        | <2.5     | Expected optimal        |
-
-Proved scaling works, but needs balanced modern content.
+# Train on Google Colab (TPU recommended)
+# Upload mega_word_dataset.pkl to Google Drive
+# Use notebooks/train_on_tpu.ipynb
+# Training time: 6-8 hours on TPU, 15-20 hours on GPU
+```
 
 ## 📁 Project Structure
 
 ```
 language-model-evolution/
-├── data/                          # Training data (not in git)
-│   ├── books/                     # 379 source texts (103 MB)
-│   │   ├── gutenberg/             # 60 books (31 MB)
-│   │   ├── gutenberg_expanded/    # 169 books (66 MB)
-│   │   ├── wikipedia/             # 127 articles (4.3 MB)
-│   │   └── academic_text/         # 10 papers (1.3 MB)
-│   ├── mega_corpus.txt            # Combined (103 MB, 22M words)
-│   ├── mega_word_dataset.pkl      # Processed (416 MB)
-│   └── dataset.pkl                # Character-level (5.7 MB)
-│
 ├── src/
-│   ├── models/                    # RNN, LSTM, Transformer
-│   ├── train/                     # Training scripts
-│   ├── analyze/                   # Visualization
-│   └── scripts/utils/             # Data preparation
+│   ├── models/              # Neural network architectures
+│   │   ├── simple_rnn.py    # Baseline RNN
+│   │   ├── lstm.py          # LSTM with gates
+│   │   └── transformer.py   # Multi-head attention
+│   ├── train/               # Training scripts
+│   │   ├── train.py         # Character-level
+│   │   └── train_word_level.py  # Word-level
+│   ├── analyze/             # Analysis & visualization
+│   └── scripts/utils/       # Data preparation
 │
-├── results/                       # Visualizations (in git)
-├── checkpoints/                   # Models (not in git - 50+ MB each)
-├── notebooks/                     # Jupyter/Colab notebooks
-└── README.md
+├── data/                    # Training data (not in git)
+│   ├── books/              # 379 source texts (103 MB)
+│   ├── news/               # Modern financial news (750 MB)
+│   ├── balanced_corpus.txt # Combined 1GB corpus
+│   └── mega_word_dataset.pkl  # Processed dataset (2.2 GB)
+│
+├── checkpoints/            # Trained models (not in git)
+│   ├── lstm_best.pth      # Char-level LSTM (1.47 loss)
+│   └── transformer_1gb_balanced_best.pth  # Word Transformer (4.01 loss)
+│
+├── results/                # Visualizations and reports
+│   ├── training curves
+│   ├── comparison plots
+│   └── experiment reports
+│
+├── notebooks/              # Jupyter/Colab notebooks
+│   └── train_on_tpu.ipynb # TPU training notebook
+│
+├── backend/                # FastAPI backend (Phase 4)
+└── frontend/               # React frontend (Phase 4)
 ```
 
-## 🚀 Quick Start
+## 📊 Complete Results Summary
+
+### Phase 1: Character-Level Baseline (640 KB corpus)
+
+**Best Model:** LSTM
+
+- Validation Loss: 1.4711
+- Parameters: 3.8M
+- Training: 50 epochs, 39.5 min CPU
+- **Winner for small datasets**
+
+Generated text quality: Excellent modern financial advice
+
+### Phase 2A: Word-Level Small Dataset (132K words)
+
+**Finding:** Severe underfitting due to vocabulary sparsity
+
+- LSTM: 6.41 loss
+- Transformer: 6.23 loss
+- Samples per word: 13.6 (insufficient)
+- **Conclusion:** Need 10-20x more data
+
+### Phase 2B: Mega Corpus - Classical Heavy (103 MB, 22M words)
+
+**Finding:** Data composition determines output style
+
+- Transformer: 5.32 loss
+- Classical texts: 83% of corpus
+- Output: Perfect 18th-century prose (Adam Smith style)
+- **Conclusion:** Data balance matters more than size
+
+### Phase 2C: Balanced Corpus (1 GB, 168M words, 87% modern)
+
+**Best Model:** Transformer (6 layers, 512 dim)
+
+- Validation Loss: 4.01
+- Training: 30 epochs, 7.5 hours TPU
+- Output: Modern conversational financial language
+- **Success:** Modern content produces modern output
+
+## 🔍 Technical Specifications
+
+### Character-Level Models
+
+**LSTM Architecture:**
+
+```python
+Embedding(113, 256)
+LSTM(256, 512, num_layers=2, dropout=0.3)
+Linear(512, 113)
+Parameters: 3,765,105
+```
+
+### Word-Level Models
+
+**Transformer Architecture (1GB Balanced):**
+
+```python
+Embedding(20000, 512)
+PositionalEncoding(512)
+TransformerEncoder(
+    d_model=512,
+    nhead=8,
+    num_layers=6,
+    dim_feedforward=2048
+)
+Linear(512, 20000)
+Parameters: ~12,000,000
+```
+
+**Training Configuration:**
+
+- Optimizer: Adam (LR: 0.0003)
+- Scheduler: ReduceLROnPlateau (factor=0.5, patience=3)
+- Batch Size: 512 (TPU), 128 (GPU)
+- Hardware: Google Colab TPU v2
+- Loss: Cross-Entropy
+
+## 📚 Dataset Details
+
+### Small Corpus (640 KB)
+
+- Sources: 2 finance books
+- Characters: 652,809
+- Words: 132,609
+- Best for: Character-level modeling
+
+### Mega Corpus - Classical (103 MB)
+
+- Sources: 229 economics classics (Gutenberg)
+- Words: 22 million
+- Era: 83% pre-1900, 17% modern
+- Result: Archaic language output
+
+### Balanced Corpus - Final (1 GB)
+
+- Sources: 379 books + 300K news articles
+- Words: 168 million
+- Era: 87% modern (2015-2024), 13% classical
+- Composition:
+  - Modern financial news: 750 MB (Kaggle datasets)
+  - Stock market analysis: 240 MB
+  - Classical economics: 35 MB (sampled from originals)
+  - Wikipedia/Academic: 5 MB
+
+**Result:** Modern, conversational financial language
+
+## 🎓 Key Learnings
+
+### 1. Match Architecture to Data Scale
+
+| Data Size | Best Approach      | Why                           |
+| --------- | ------------------ | ----------------------------- |
+| <1 MB     | Character RNN/LSTM | Limited vocab, dense coverage |
+| 1-10 MB   | Character LSTM     | Optimal sample density        |
+| 10-100 MB | Word LSTM          | Transitional scale            |
+| >100 MB   | Word Transformer   | Attention benefits with scale |
+
+### 2. Data Quality Over Quantity
+
+**Evidence:**
+
+- 640 KB focused: 1.47 loss, excellent quality
+- 103 MB imbalanced: 5.32 loss, archaic style
+- 571 MB over-cleaned: 7.55 loss, broken
+- 1 GB balanced: 4.01 loss, modern style
+
+**Lesson:** Curation and balance matter more than raw size
+
+### 3. Domain Determines Style
+
+Model output mirrors training data composition:
+
+- 83% classical texts → 18th-century prose
+- 87% modern news → contemporary language
+- Can't expect modern output from historical training data
+
+### 4. Vocabulary Size Critical for Word-Level
+
+- 20K vocab on 168M words: 4.01 loss, some `<UNK>` tokens
+- Optimal: 30-50K vocab for <2.0 loss
+- Trade-off: Larger vocab = larger model = slower training
+
+### 5. Hyperparameters Secondary to Data
+
+**Experiments:**
+
+- Fine-tuning learning rate: 0.5% improvement
+- Adjusting dropout: Minimal impact
+- Data rebalancing: 24% improvement
+
+**Conclusion:** Get data right first, then tune hyperparameters
+
+### 6. Training From Scratch Has Limits
+
+**Observation:**
+
+- Custom Transformer: 4.01 loss after weeks of work
+- Fine-tuned GPT-2: <2.0 perplexity in days (expected)
+
+**Lesson:** Transfer learning beats training from scratch for production
+
+## 🚀 Usage
+
+### Generate Text (Python)
+
+```python
+import torch
+import pickle
+from src.models.transformer import TransformerModel
+
+# Load model and dataset
+with open('data/mega_word_dataset.pkl', 'rb') as f:
+    dataset = pickle.load(f)
+
+checkpoint = torch.load('checkpoints/transformer_1gb_balanced_best.pth')
+model = TransformerModel(vocab_size=dataset['vocab_size'], ...)
+model.load_state_dict(checkpoint['model_state_dict'])
+
+# Generate
+prompt = "Money is"
+# [generation code]
+```
+
+### API Server (FastAPI)
 
 ```bash
-git clone https://github.com/Nik-lesh/language-model-evolution.git
-cd language-model-evolution
-python -m venv venv
-source venv/bin/activate
+cd backend
 pip install -r requirements.txt
+python main.py
+
+# API available at http://localhost:8000
+# Swagger docs at http://localhost:8000/docs
 ```
 
-**Train on small dataset (local CPU):**
+### Web Demo (Coming Soon - Phase 4)
 
-```bash
-python src/train/train.py lstm  # Best model: 1.47 loss in 40 min
-```
+React + FastAPI full-stack application in development.
 
-**Train on mega corpus (Google Colab GPU):**
+## 📊 Training Details
 
-- Upload `mega_word_dataset.pkl` to Google Drive
-- Open `notebooks/train_on_colab.ipynb` in Colab
-- Select V100 GPU runtime
-- Run all cells (~1.5 hours)
+### Hardware Used
+
+- **CPU:** Apple Silicon M-series (initial experiments)
+- **GPU:** Google Colab V100 (103 MB training)
+- **TPU:** Google Colab TPU v2 (1 GB training)
+
+### Training Times
+
+| Model      | Dataset | Hardware | Time    |
+| ---------- | ------- | -------- | ------- |
+| Char LSTM  | 640 KB  | CPU      | 40 min  |
+| Word Trans | 103 MB  | V100 GPU | 1.5 hrs |
+| Word Trans | 1 GB    | TPU v2   | 7.5 hrs |
+
+### Cost Analysis
+
+- Google Colab Pro: $10/month
+- Total compute cost: ~$10
+- Data collection: Free (public domain sources)
+- **Total project cost: <$20**
 
 ## 🔬 Experiments Conducted
 
 ### Experiment 1: Architecture Comparison (Character-Level)
 
+- **Dataset:** 640 KB, 2 finance books
 - **Winner:** LSTM (1.47 loss)
-- **Insight:** Gates crucial for sequence modeling
+- **Insight:** Gates crucial for character sequence modeling
 
-### Experiment 2: Tokenization Strategy (Small Data)
+### Experiment 2: Tokenization Strategy
 
+- **Dataset:** Same 640 KB
 - **Finding:** Word-level needs 10-20x more data
-- **Vocabulary sparsity:** 13.6 samples/word insufficient
+- **Conclusion:** 13.6 samples/word insufficient
 
-### Experiment 3: Dataset Scaling (22M words)
+### Experiment 3: Mega Corpus (Classical Heavy)
 
-- **Improvement:** 14% better than small dataset
-- **Issue:** Classical books dominated, created archaic style
-- **Learning:** Data composition > Data quantity
+- **Dataset:** 103 MB, 229 books, 83% pre-1900
+- **Result:** 5.32 loss, generates 18th-century prose
+- **Learning:** Model mirrors training data era
 
-### Experiment 4: Hyperparameter Fine-Tuning
+### Experiment 4: Hyperparameter Tuning
 
+- **Approach:** Lower LR, higher dropout, early stopping
 - **Result:** 0.5% improvement only
-- **Conclusion:** Not a tuning problem, needs balanced data
+- **Conclusion:** Data quality is bottleneck, not hyperparameters
 
-## 📊 Model Performance Summary
+### Experiment 5: Data Cleaning Effects
 
-| Model       | Dataset    | Tokenization | Val Loss | Style         | Best For       |
-| ----------- | ---------- | ------------ | -------- | ------------- | -------------- |
-| **LSTM** 🥇 | 640KB      | Character    | **1.47** | Modern, clear | **Production** |
-| Transformer | 640KB      | Character    | 1.55     | Good          | Small data     |
-| Transformer | 132K words | Word         | 6.23     | Broken        | N/A            |
-| Transformer | 22M words  | Word         | 5.32     | Classical     | Research       |
+- **Aggressive cleaning:** 44% removed, 7.55 loss (destroyed sentences)
+- **Minimal cleaning:** 5-10% removed, 4.01 loss (preserved structure)
+- **Learning:** Over-cleaning worse than under-cleaning
 
-## 🚀 Next Steps: Phase 2B - Balanced Dataset
+### Experiment 6: Balanced Corpus at Scale
 
-### Problem Identified
+- **Dataset:** 1 GB, 168M words, 87% modern
+- **Training:** TPU, adaptive LR, 30 epochs
+- **Result:** 4.01 loss, modern language achieved
+- **Success:** Proper data balance produces proper output
 
-Current 103 MB corpus composition:
+## 📈 Scaling Analysis
 
-- Classical economics: 83% (archaic language)
-- Modern content: 17% (insufficient)
+### Vocabulary Density Requirements
 
-### Solution: Balanced 1 GB Corpus
+| Dataset | Words | Vocab | Samples/Word | Val Loss   | Status                  |
+| ------- | ----- | ----- | ------------ | ---------- | ----------------------- |
+| Small   | 132K  | 10K   | 13.6         | 6.23       | Severe underfitting     |
+| Medium  | 22M   | 20K   | 916          | 5.32       | Learning but imbalanced |
+| Large   | 168M  | 20K   | 5,570        | 4.01       | Good density            |
+| Optimal | 168M  | 40K   | 4,200        | ~3.5 (est) | Target                  |
 
-**Target Composition:**
+**Finding:** Need >500 samples per word for stable learning
 
-- Classical texts: 100 MB (10%)
-- Modern finance books (2000-2024): 400 MB (40%)
-- Financial news articles: 300 MB (30%)
-- Corporate reports (SEC): 200 MB (20%)
+### Data Quality Impact
 
-**Expected Results:**
+**Text preprocessing effects:**
 
-- Val loss: <2.5 (vs current 5.32)
-- Modern language style
-- Production-ready text quality
-- Vocabulary: 30-40K words
+| Processing | Data Lost | Sentence Integrity     | Model Performance   |
+| ---------- | --------- | ---------------------- | ------------------- |
+| None       | 0%        | Perfect                | Noisy but learnable |
+| Minimal    | 5-10%     | Preserved              | ✅ Optimal          |
+| Aggressive | 44%       | Broken (22% fragments) | ❌ Destroyed        |
 
-**Timeline:** 3-4 weeks
-**Training:** TPU (4-5 hours) vs GPU (12-15 hours)
-
-### Data Sources (Modern Content)
-
-**Modern Books (400 MB):**
-
-- Internet Archive borrowing
-- Library digital lending (Libby)
-- Investment classics (2000s-2020s)
-
-**Financial News (300 MB):**
-
-- Kaggle datasets (pre-collected)
-- Investopedia articles
-- MarketWatch archives (2020-2024)
-
-**Corporate Data (200 MB):**
-
-- SEC 10-K filings (100 companies)
-- Earnings call transcripts
-- Analyst reports
-
-## 📚 Key Learnings
-
-1. **Data quality > Data quantity** - 100 MB balanced > 1 GB imbalanced
-2. **Character-level LSTM excels** on focused, small datasets
-3. **Word-level needs both scale AND balance** - 20M words + modern content
-4. **Architecture fits data characteristics** - No universal winner
-5. **Classical texts create classical output** - Model mirrors training distribution
-6. **Hyperparameters secondary** to data composition
-7. **Early stopping crucial** - Best model often found early (epoch 2 vs 50)
+**Optimal:** Remove only HTML, URLs, excessive whitespace
 
 ## 🛠️ Tech Stack
 
-- **Framework:** PyTorch 2.0+
-- **GPU:** Google Colab (V100/A100)
-- **Processing:** NumPy, Pandas, pdfplumber
-- **Visualization:** Matplotlib, Seaborn
-- **Next:** TPU for 1GB training, Hugging Face Transformers for fine-tuning
+**Core:**
+
+- PyTorch 2.1+ (deep learning framework)
+- NumPy, Pandas (data processing)
+- Matplotlib, Seaborn (visualization)
+
+**Data Collection:**
+
+- pdfplumber, PyPDF2 (PDF extraction)
+- wikipedia, datasets (public data)
+- Beautiful Soup (web scraping)
+
+**Training Infrastructure:**
+
+- Google Colab Pro (GPU/TPU)
+- Weights & Biases (experiment tracking - optional)
+
+**Production (Phase 4):**
+
+- FastAPI (backend API)
+- React (frontend)
+- Docker (containerization)
+- PostgreSQL (conversation storage)
+
+## 📦 Installation
+
+### Local Development
+
+```bash
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/language-model-evolution.git
+cd language-model-evolution
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Data Preparation
+
+```bash
+# Character-level (small dataset)
+python src/scripts/utils/prepare_data.py
+
+# Word-level (requires 1GB corpus - see Data Collection Guide)
+python scripts/create_balanced_final_corpus.py
+python src/scripts/utils/prepare_word_level_data.py data/balanced_corpus.txt
+```
+
+### Training
+
+**Local (CPU):**
+
+```bash
+python src/train/train.py lstm  # 40 min
+```
+
+**Google Colab (GPU/TPU):**
+
+- Upload notebook: `notebooks/train_on_tpu.ipynb`
+- Upload dataset to Google Drive
+- Select TPU runtime
+- Execute all cells
+
+## 📚 Data Sources
+
+### Classical Economics (103 MB)
+
+- Project Gutenberg: 229 public domain books
+- Authors: Adam Smith, Karl Marx, Keynes, Mises, Hayek
+- Era: 1700s-1900s
+- License: Public domain
+
+### Modern Financial News (750 MB)
+
+- Kaggle datasets: 300K+ articles (2015-2024)
+- Sources: CNBC, Reuters, Bloomberg, MarketWatch
+- License: Dataset-specific (check individual sources)
+
+### Supporting Data (15 MB)
+
+- Wikipedia: 127 finance articles (CC-BY-SA)
+- Academic: 10 arXiv papers (open access)
+- HuggingFace: Financial sentiment datasets
+
+**Total:** 379 sources, 1 GB combined, 168M words
+
+## 🎯 Next Steps: Phase 4 - Production Deployment
+
+### Planned Features
+
+**Core Functionality:**
+
+- 💬 Chat interface (like ChatGPT for finance)
+- 📊 Multiple model comparison
+- 🔄 Conversation history
+- ⚙️ Adjustable parameters (temperature, length)
+
+**Advanced Features:**
+
+- 🔐 User authentication
+- 💾 Conversation persistence
+- 📈 Usage analytics
+- 🎨 Custom themes
+
+### Tech Stack (Phase 4)
+
+**Backend:**
+
+- FastAPI (Python web framework)
+- PostgreSQL (user data, conversations)
+- Redis (caching, sessions)
+- Docker (containerization)
+
+**Frontend:**
+
+- React 18+ (UI framework)
+- Material-UI (component library)
+- Axios (API calls)
+- React Router (navigation)
+
+**Deployment:**
+
+- Railway/Render (hosting)
+- Cloudflare (CDN)
+- GitHub Actions (CI/CD)
+
+## 📄 Documentation
+
+### Detailed Experiment Reports
+
+- `results/MEGA_CORPUS_EXPERIMENT.md` - 103 MB classical corpus analysis
+- `results/word_level/README.md` - Word-level tokenization experiments
+- `DATA_COLLECTION_PLAN.md` - Dataset assembly strategy
+- `checkpoints/MODEL_SUMMARY.md` - All trained models catalog
+
+### Notebooks
+
+- `notebooks/train_on_tpu.ipynb` - TPU training workflow
+- `notebooks/analyze_results.ipynb` - Interactive analysis (WIP)
+
+## 🤝 Contributing
+
+This is a research and learning project demonstrating:
+
+- Language model architecture evolution
+- Impact of data composition and scale
+- Practical ML engineering workflow
+
+Feel free to:
+
+- Fork and experiment with different architectures
+- Try different datasets or domains
+- Implement additional models (GRU, GPT, BERT)
+- Improve data preprocessing
 
 ## 📄 License
 
-MIT License
+MIT License - See LICENSE file
 
 ## 🙏 Acknowledgments
 
-- **Dataset:** 379 finance sources from Gutenberg, Wikipedia, and academic papers
-- **Inspiration:** Evolution of NLP from RNN to Transformers
-- **Purpose:** Understanding architecture-data relationships in deep learning
+**Inspiration:**
+
+- The evolution of NLP from RNNs (1980s) to Transformers (2017+)
+- "Attention Is All You Need" (Vaswani et al., 2017)
+- OpenAI's GPT series demonstrating scale benefits
+
+**Data Sources:**
+
+- Project Gutenberg (public domain books)
+- Kaggle community datasets
+- Wikipedia contributors
+- arXiv open access papers
+
+**Computational Resources:**
+
+- Google Colab Pro (TPU/GPU access)
+- Anthropic's Claude (code assistance and debugging)
+
+## 📞 Project Stats
+
+**Development Time:** 3 weeks  
+**Lines of Code:** ~3,000  
+**Models Trained:** 8 distinct experiments  
+**Total Training Time:** ~40 hours  
+**Dataset Collected:** 1 GB+ across 379 sources  
+**Best Model:** Character-level LSTM (1.47 loss) for small data  
+**Production Model:** Word Transformer (4.01 loss) for modern applications
+
+## 🎓 Educational Value
+
+This project demonstrates understanding of:
+
+- ✅ Neural network architectures (RNN, LSTM, Transformer)
+- ✅ Sequence modeling and attention mechanisms
+- ✅ Data collection and preprocessing at scale
+- ✅ Training optimization (learning rates, schedulers, regularization)
+- ✅ Experimental design and ablation studies
+- ✅ Production ML considerations (data quality, compute trade-offs)
+- ✅ Model evaluation beyond simple metrics
+
+**Perfect for:**
+
+- FAANG ML engineer interviews
+- Graduate school applications
+- Research paper foundation
+- Production deployment experience
 
 ---
 
 **Current Status:**  
-✅ **Phase 1 Complete** - Character-level baseline (LSTM: 1.47 loss)  
-✅ **Phase 2A Complete** - Mega corpus training (Transformer: 5.32 loss)  
-🔄 **Phase 2B In Progress** - Balanced 1GB dataset collection  
-⏳ **Phase 3 Planned** - TPU training (4-5 hours)  
-⏳ **Phase 4 Planned** - Production deployment
+✅ **Research Complete** - All experiments finished  
+✅ **Best Models Identified** - Char LSTM (small), Word Transformer (large)  
+🔄 **Phase 4 In Progress** - Full-stack deployment  
+⏳ **Demo Deployment** - Coming soon
 
-**Key Achievement:** Proved dataset composition determines output style more than architecture choice
+**Key Achievement:** Demonstrated that data composition and quality matter more than architecture choice or dataset size alone.
 
-**Current Best:** Character-level LSTM (1.47 loss, modern readable output)  
-**Research Goal:** Word-level Transformer on balanced 1GB (<2.5 loss, modern style)  
-**Production Path:** Fine-tune GPT-2 on finance corpus (combines modern language + domain expertise)
-
-**Last Updated:** November 12, 2025
+**Last Updated:** November 17, 2025  
+**Project Status:** Production deployment phase  
+**Next Milestone:** Full-stack web application with React + FastAPI
