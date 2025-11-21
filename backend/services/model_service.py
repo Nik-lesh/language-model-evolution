@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 import logging
+from huggingface_hub import hf_hub_download
+import os
 
 # Fix path to find src/models/
 current_file = Path(__file__).resolve()
@@ -46,46 +48,55 @@ class ModelService:
     def load(self):
         """Load model and dataset."""
         
-        logger.info("Loading dataset...")
-        
-        dataset_path = Path(settings.DATASET_PATH)
-        if not dataset_path.exists():
-            raise FileNotFoundError(f"Dataset not found: {dataset_path}")
-        
-        with open(dataset_path, 'rb') as f:
-            self.dataset = pickle.load(f)
-        
-        logger.info(f"✅ Dataset loaded (vocab: {self.dataset['vocab_size']:,})")
-        
-        # Load model
-        logger.info("Loading model...")
-        
-        model_path = Path(settings.MODEL_PATH)
-        if not model_path.exists():
-            raise FileNotFoundError(f"Model not found: {model_path}")
-        
-        checkpoint = torch.load(model_path, map_location=self.device)
-        
-        self.model = TransformerModel(
-            vocab_size=self.dataset['vocab_size'],
-            d_model=512,
-            nhead=8,
-            num_layers=6,
-            dim_feedforward=2048,
-            dropout=0.2
-        )
-        
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.model.eval()
-        self.model.to(self.device)
-        
-        logger.info(f"✅ Model loaded on {self.device}")
-        
-        # Warm up model (first inference is slow)
-        logger.info("Warming up model...")
-        self.generate("test", max_length=10)
-        logger.info("✅ Model ready!")
+        logger.info("Loading from HuggingFace Hub...")
     
+        repo_id = "Nikhiles9/financial-language-model"
+        
+        try:
+            logger.info("Downloading dataset...")
+            dataset_path = hf_hub_download(
+                repo_id=repo_id,
+                filename="mega_word_dataset.pkl",
+                cache_dir="./hf_cache"
+            )
+        
+            with open(dataset_path, 'rb') as f:
+                self.dataset = pickle.load(f)
+        
+            logger.info(f"✅ Dataset loaded (vocab: {self.dataset['vocab_size']:,})")
+        
+        # Download model
+            logger.info("Downloading model...")
+            model_path = hf_hub_download(
+                repo_id=repo_id,
+                filename="transformer_1gb_balanced_best.pth",
+                cache_dir="./hf_cache"
+            )
+            checkpoint = torch.load(model_path, map_location=self.device)
+        
+            self.model = TransformerModel(
+                vocab_size=self.dataset['vocab_size'],
+                d_model=512,
+                nhead=8,
+                num_layers=6,
+                dim_feedforward=2048,
+                dropout=0.2
+                )
+        
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.model.eval()
+            self.model.to(self.device)
+        
+            logger.info(f"✅ Model loaded on {self.device}")
+        
+        # Warm up
+            self.generate("test", max_length=10)
+            logger.info("✅ Model ready!")
+        
+        except Exception as e:
+            logger.error(f"Failed to load from HuggingFace: {e}")
+            raise
+
     def generate(self, prompt: str, max_length: int = 100, 
                  temperature: float = 0.8) -> str:
         """
