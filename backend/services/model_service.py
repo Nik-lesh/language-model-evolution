@@ -81,7 +81,7 @@ class ModelService:
                 num_layers=6,
                 dim_feedforward=2048,
                 dropout=0.2
-                ``)
+                )
         
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.model.eval()
