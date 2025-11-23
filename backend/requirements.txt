@@ -1,0 +1,25 @@
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+
+# Security (for Phase 4B)
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# Database (for Phase 4B)
+sqlalchemy==2.0.23
+alembic==1.13.0
+psycopg2-binary==2.9.9
+
+# Caching (for Phase 4C)
+redis==5.0.1
+
+# ML/AI - Use latest compatible versions
+torch>=2.2.0
+transformers>=4.35.0
+numpy>=1.26.0
+huggingface-hub==0.19.4
