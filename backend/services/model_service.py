@@ -50,7 +50,7 @@ class ModelService:
         
         logger.info("Loading from HuggingFace Hub...")
     
-        repo_id = "Nikhiles9/financial-language-model"
+        repo_id = "Nikilesh9/financial-language-model"
         
         try:
             logger.info("Downloading dataset...")
