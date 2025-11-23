@@ -5,7 +5,6 @@ import {
   Button,
   Paper,
   Typography,
-  Container,
   CircularProgress,
   Slider,
   Chip,
@@ -25,7 +24,6 @@ function ChatInterface() {
   const [temperature, setTemperature] = useState(0.8);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -40,7 +38,6 @@ function ChatInterface() {
     setLoading(true);
 
     try {
-      // Add user message
       const userMessage = {
         role: "user",
         content: prompt,
@@ -48,14 +45,12 @@ function ChatInterface() {
       };
       setMessages((prev) => [...prev, userMessage]);
 
-      // Call API
       const response = await axios.post(`${API_URL}/generate`, {
         prompt: prompt,
         max_length: maxLength,
         temperature: temperature,
       });
 
-      // Add AI response
       const aiMessage = {
         role: "assistant",
         content: response.data.generated_text,
@@ -64,7 +59,6 @@ function ChatInterface() {
       };
       setMessages((prev) => [...prev, aiMessage]);
 
-      // Clear input
       setPrompt("");
     } catch (error) {
       console.error("Error:", error);
@@ -107,12 +101,19 @@ function ChatInterface() {
   };
 
   return (
-    <Container
-      maxWidth="lg"
-      sx={{ py: 4, height: "100vh", display: "flex", flexDirection: "column" }}
+    <Box
+      sx={{
+        width: "100vw",
+        height: "100vh",
+        bgcolor: "#000000",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        p: 3,
+      }}
     >
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography
           variant="h3"
           component="h1"
@@ -120,32 +121,51 @@ function ChatInterface() {
           align="center"
           sx={{
             fontWeight: 700,
-            background: "linear-gradient(45deg, grey, grey 50%, black 100%)",
+            background:
+              "linear-gradient(45deg, #9e9e9e, #bdbdbd 50%, #e0e0e0 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
+            mb: 1,
           }}
         >
-          🤖 Financial Advisor AI
+          Financial Advisor AI
         </Typography>
-        <Typography variant="subtitle1" align="center" color="text.secondary">
+        <Typography
+          variant="subtitle1"
+          align="center"
+          sx={{ color: "#b0b0b0" }}
+        >
           Powered by Transformer trained on 1GB financial corpus (168M words)
         </Typography>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, flex: 1, overflow: "hidden" }}>
+      <Box sx={{ display: "flex", gap: 2, flex: 1, minHeight: 0 }}>
         {/* Left Panel - Settings */}
         <Paper
           elevation={3}
-          sx={{ p: 3, width: 280, display: "flex", flexDirection: "column" }}
+          sx={{
+            p: 3,
+            width: 300,
+            display: "flex",
+            flexDirection: "column",
+            bgcolor: "#1a1a1a",
+            color: "#e0e0e0",
+            flexShrink: 0,
+          }}
         >
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ color: "#e0e0e0" }}>
             ⚙️ Settings
           </Typography>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 2, bgcolor: "#404040" }} />
 
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" gutterBottom fontWeight={600}>
+            <Typography
+              variant="body2"
+              gutterBottom
+              fontWeight={600}
+              sx={{ color: "#e0e0e0" }}
+            >
               Length: {maxLength} words
             </Typography>
             <Slider
@@ -156,11 +176,22 @@ function ChatInterface() {
               step={10}
               valueLabelDisplay="auto"
               size="small"
+              sx={{
+                color: "#9e9e9e",
+                "& .MuiSlider-thumb": {
+                  bgcolor: "#bdbdbd",
+                },
+              }}
             />
           </Box>
 
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" gutterBottom fontWeight={600}>
+            <Typography
+              variant="body2"
+              gutterBottom
+              fontWeight={600}
+              sx={{ color: "#e0e0e0" }}
+            >
               Creativity: {temperature}
             </Typography>
             <Slider
@@ -171,45 +202,78 @@ function ChatInterface() {
               step={0.1}
               valueLabelDisplay="auto"
               size="small"
+              sx={{
+                color: "#9e9e9e",
+                "& .MuiSlider-thumb": {
+                  bgcolor: "#bdbdbd",
+                },
+              }}
             />
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" sx={{ color: "#909090" }}>
               Higher = more creative, Lower = more conservative
             </Typography>
           </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 2, bgcolor: "#404040" }} />
 
-          <Typography variant="body2" gutterBottom fontWeight={600}>
+          <Typography
+            variant="body2"
+            gutterBottom
+            fontWeight={600}
+            sx={{ color: "#e0e0e0" }}
+          >
             💡 Try these prompts:
           </Typography>
-          {examplePrompts.map((example, idx) => (
-            <Chip
-              key={idx}
-              label={example}
-              onClick={() => handleExampleClick(example)}
-              sx={{
-                mb: 1,
-                cursor: "pointer",
-                width: "100%",
-                justifyContent: "flex-start",
-              }}
-              size="small"
-            />
-          ))}
+          <Box sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+            {examplePrompts.map((example, idx) => (
+              <Chip
+                key={idx}
+                label={example}
+                onClick={() => handleExampleClick(example)}
+                sx={{
+                  mb: 1,
+                  cursor: "pointer",
+                  width: "100%",
+                  justifyContent: "flex-start",
+                  bgcolor: "#2a2a2a",
+                  color: "#d0d0d0",
+                  "&:hover": {
+                    bgcolor: "#353535",
+                  },
+                }}
+                size="small"
+              />
+            ))}
+          </Box>
 
-          <Box sx={{ mt: "auto", pt: 2 }}>
+          <Box sx={{ pt: 2, flexShrink: 0 }}>
             <Button
               fullWidth
               variant="outlined"
               startIcon={<DeleteIcon />}
               onClick={clearChat}
               disabled={messages.length === 0}
+              sx={{
+                borderColor: "#505050",
+                color: "#d0d0d0",
+                "&:hover": {
+                  borderColor: "#707070",
+                  bgcolor: "#2a2a2a",
+                },
+                "&.Mui-disabled": {
+                  borderColor: "#303030",
+                  color: "#606060",
+                },
+              }}
             >
               Clear Chat
             </Button>
           </Box>
 
-          <Typography variant="caption" sx={{ mt: 2 }} color="text.secondary">
+          <Typography
+            variant="caption"
+            sx={{ mt: 2, color: "#909090", flexShrink: 0 }}
+          >
             🏆 Best Model: Char-level LSTM (1.47 loss)
             <br />
             📊 Current: Word Transformer (4.01 loss)
@@ -223,6 +287,7 @@ function ChatInterface() {
             display: "flex",
             flexDirection: "column",
             minWidth: 0,
+            minHeight: 0,
           }}
         >
           {/* Messages */}
@@ -233,22 +298,28 @@ function ChatInterface() {
               p: 3,
               mb: 2,
               overflow: "auto",
-              bgcolor: "#fafafa",
+              bgcolor: "#0a0a0a",
+              minHeight: 0,
             }}
           >
             {messages.length === 0 ? (
-              <Box sx={{ textAlign: "center", py: 12 }}>
-                <Typography variant="h5" gutterBottom color="text.secondary">
+              <Box
+                sx={{
+                  textAlign: "center",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Typography variant="h5" gutterBottom sx={{ color: "#c0c0c0" }}>
                   👋 Welcome to Financial Advisor AI
                 </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ mb: 3 }}
-                >
+                <Typography variant="body1" sx={{ mb: 3, color: "#a0a0a0" }}>
                   Ask me anything about investing, finance, or the stock market!
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{ color: "#909090" }}>
                   Built with custom-trained language models:
                   <br />
                   RNN → LSTM → Transformer evolution
@@ -273,21 +344,23 @@ function ChatInterface() {
                         maxWidth: "75%",
                         bgcolor:
                           msg.role === "user"
-                            ? "primary.main"
+                            ? "#2a2a2a"
                             : msg.role === "error"
-                            ? "error.main"
-                            : "white",
-                        color:
-                          msg.role === "user" || msg.role === "error"
-                            ? "white"
-                            : "black",
+                            ? "#4a1a1a"
+                            : "#1a1a1a",
+                        color: "#e0e0e0",
                         borderRadius: 2,
                       }}
                     >
                       <Typography
                         variant="caption"
                         display="block"
-                        sx={{ mb: 0.5, opacity: 0.8, fontWeight: 600 }}
+                        sx={{
+                          mb: 0.5,
+                          opacity: 0.8,
+                          fontWeight: 600,
+                          color: "#c0c0c0",
+                        }}
                       >
                         {msg.role === "user"
                           ? "👤 You"
@@ -297,7 +370,11 @@ function ChatInterface() {
                       </Typography>
                       <Typography
                         variant="body1"
-                        sx={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}
+                        sx={{
+                          whiteSpace: "pre-wrap",
+                          lineHeight: 1.6,
+                          color: "#e0e0e0",
+                        }}
                       >
                         {msg.content}
                       </Typography>
@@ -305,7 +382,7 @@ function ChatInterface() {
                         <Typography
                           variant="caption"
                           display="block"
-                          sx={{ mt: 1, opacity: 0.7 }}
+                          sx={{ mt: 1, opacity: 0.7, color: "#a0a0a0" }}
                         >
                           {msg.metadata.val_loss} loss •{" "}
                           {msg.metadata.parameters}
@@ -323,8 +400,8 @@ function ChatInterface() {
                       ml: 2,
                     }}
                   >
-                    <CircularProgress size={20} />
-                    <Typography variant="body2" color="text.secondary">
+                    <CircularProgress size={20} sx={{ color: "#9e9e9e" }} />
+                    <Typography variant="body2" sx={{ color: "#a0a0a0" }}>
                       AI is thinking...
                     </Typography>
                   </Box>
@@ -335,7 +412,7 @@ function ChatInterface() {
           </Paper>
 
           {/* Input */}
-          <Paper elevation={3} sx={{ p: 2 }}>
+          <Paper elevation={3} sx={{ p: 2, bgcolor: "#1a1a1a", flexShrink: 0 }}>
             <Box sx={{ display: "flex", gap: 1.5 }}>
               <TextField
                 fullWidth
@@ -348,13 +425,43 @@ function ChatInterface() {
                 disabled={loading}
                 variant="outlined"
                 size="medium"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    color: "#e0e0e0",
+                    "& fieldset": {
+                      borderColor: "#404040",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#606060",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#808080",
+                    },
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: "#808080",
+                    opacity: 1,
+                  },
+                }}
               />
               <Button
                 variant="contained"
                 endIcon={<SendIcon />}
                 onClick={handleGenerate}
                 disabled={loading || !prompt.trim()}
-                sx={{ minWidth: 120, height: 56 }}
+                sx={{
+                  minWidth: 120,
+                  height: 56,
+                  bgcolor: "#2a2a2a",
+                  color: "#e0e0e0",
+                  "&:hover": {
+                    bgcolor: "#353535",
+                  },
+                  "&.Mui-disabled": {
+                    bgcolor: "#1a1a1a",
+                    color: "#606060",
+                  },
+                }}
                 size="large"
               >
                 Send
@@ -363,7 +470,7 @@ function ChatInterface() {
           </Paper>
         </Box>
       </Box>
-    </Container>
+    </Box>
   );
 }
 
