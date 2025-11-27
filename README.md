@@ -8,6 +8,10 @@ This project systematically compares three generations of neural network archite
 
 **Key Achievement:** Successfully scaled from 640 KB to 1 GB balanced corpus while demonstrating that data quality and composition matter as much as architecture choice.
 
+
+https://github.com/user-attachments/assets/72b67cf2-a9f9-4a66-a516-0754f64bea6f
+
+
 ## 🏆 Complete Results Overview
 
 | Experiment   | Model       | Dataset             | Tokenization | Val Loss      | Text Quality              | Key Learning                                   |
